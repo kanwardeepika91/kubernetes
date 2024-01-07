@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  labels:
+    app: mongodb-deploy
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-deploy # line 1 till 12 is specification for Deployment
+
+  template: # line 14 till 24 is template and specification for pods which is blueprint for pod 
+    metadata:
+      labels:
+        app: mongodb-deploy
+
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongodb-root-username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongodb-root-password
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+
+spec:
+  selector:
+    app: mongodb-deploy
+  ports:
+  - protocol: TCP
+    port: 27017
+    targetPort: 27017
